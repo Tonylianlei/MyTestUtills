@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.util.CellRangeAddress;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,7 +19,7 @@ import java.util.*;
  * 描述：
  */
 public class MyExcelUtil {
-    private static void excelExport(String sheetName, List<Map<String,Object>> dataList,Integer[][] cellRegion ,String[] titleList){
+    private static void excelExport(String fileName , String sheetName, List<Map<String,Object>> dataList, Integer[][] cellRegion , String[] titleList, HttpServletResponse response){
         //创建workbook
         HSSFWorkbook workbook = new HSSFWorkbook();
         //创建sheet页
@@ -33,7 +34,7 @@ public class MyExcelUtil {
         sheet.setColumnWidth(0, 3766); //第一个参数代表列id(从0开始),第2个参数代表宽度值  参考 ："2012-08-10"的宽度为2500
         HSSFRow row = sheet.createRow(0);
         HSSFCell cell1 = row.createCell(0);
-        cell1.setCellValue(sheetName);
+        cell1.setCellValue(fileName);
         cell1.setCellStyle(buildTitleCellStyle(workbook));
         for (int i = 0 ; i < dataList.size() ; i ++) {
             row = sheet.createRow(i+1);
@@ -51,20 +52,13 @@ public class MyExcelUtil {
             }
         }
         sheet.autoSizeColumn(1,true);
-        FileOutputStream stream = null;
         try {
-            stream = new FileOutputStream("d:/students.xls");
-            workbook.write(stream);
-        } catch (FileNotFoundException e) {
+            response.reset();
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8");
+            response.setHeader("Content-Disposition", "attachment;filename="+ new String((fileName + ".xlsx").getBytes("gb2312"), "iso-8859-1"));
+            workbook.write(response.getOutputStream());
+        }catch (Exception e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }finally {
-            try {
-                stream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -169,7 +163,7 @@ public class MyExcelUtil {
         int i = dataList.size() - 1;
         Integer[][] integers = {{0,0,0,i},{1,2,0,0},{1,2,1,1},{1,1,2,4}};
         String[] titleList = {"xing","nian","yu","shu","ying"};
-        excelExport("学生成绩单",dataList,integers,titleList);
+        //excelExport("要导出的文件名称（文件名称和第一行名称相同）","学生成绩单",dataList,integers,titleList);
         //excelExport()
     }
 }
